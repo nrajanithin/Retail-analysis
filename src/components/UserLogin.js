@@ -5,10 +5,7 @@ import Chart from "react-apexcharts";
 import { CsvToHtmlTable } from 'react-csv-to-table';
 import { CSVReader } from 'react-papaparse'
 import * as d3 from 'd3'
-import hh from '../assets/400_households.csv'
 import {GroupBy} from 'aggregate_groupby_js'
-import products from '../assets/400_products.csv'
-import transactions from '../assets/400_transactions.csv'
 import axios from 'axios';
 const buttonRef1 = React.createRef()
 const buttonRef2 = React.createRef()

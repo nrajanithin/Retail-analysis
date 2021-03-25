@@ -1,11 +1,8 @@
 import React from 'react'
 import fire from './fire';
 import './user.css';
-import Chart from "react-apexcharts";
-import { CsvToHtmlTable } from 'react-csv-to-table';
+import ReactApexChart from "react-apexcharts";
 import { CSVReader } from 'react-papaparse'
-import * as d3 from 'd3'
-import {GroupBy} from 'aggregate_groupby_js'
 import axios from 'axios';
 const buttonRef1 = React.createRef()
 const buttonRef2 = React.createRef()
@@ -15,7 +12,13 @@ class UserLogin extends React.Component
     
         
         state = {
+            don:[],
+            bar:[],
+            line:[],
             spsh : [],
+            pharma:[],
+            food:[],
+            non_food:[],
             success:false,
             login : true,
             register:false,
@@ -68,7 +71,365 @@ class UserLogin extends React.Component
         }
 
         componentDidMount = ()=>{
-           
+            var raj = [];
+            var phar_ss = [];
+            var phar_nm = [];
+            var food_ss = [];
+            var food_nm = [];
+            var non_food_ss =[];
+            var non_food_nm = [];
+            var west =[];
+            var central = [];
+            var east = [];
+            var south = [];
+            var bfood = [];
+            var bnonfood = [];
+            var bpharma = [];
+            var don_ss =[];
+            var don_nm = [];
+            axios.get("http://localhost:5000/")
+            .then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    phar_ss.push(ob.ss);
+                    phar_nm.push(ob.store_r);
+                    var ph = {
+          
+                        series: phar_ss,
+                        options: {
+                          chart: {
+                            width: 380,
+                            type: 'pie',
+                          },
+                          title: {
+                            text: 'PHARMA v/s REGION',
+                            align: 'left'
+                          },
+                          labels: phar_nm,
+                          responsive: [{
+                            breakpoint: 480,
+                            options: {
+                              chart: {
+                                width: 200
+                              },
+                              legend: {
+                                position: 'bottom'
+                              }
+                            }
+                          }]
+                        },
+                      
+                      
+                      };
+                 
+                    this.setState({pharma:ph})
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            axios.get("http://localhost:5000/food").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    food_ss.push(ob.ss);
+                    food_nm.push(ob.store_r);
+                    var ph = {
+          
+                        series: food_ss,
+                        options: {
+                          chart: {
+                            width: 380,
+                            type: 'pie',
+                          },
+                          title: {
+                            text: 'FOOD v/s REGION',
+                            align: 'left'
+                          },
+                          labels: food_nm,
+                          responsive: [{
+                            breakpoint: 480,
+                            options: {
+                              chart: {
+                                width: 200
+                              },
+                              legend: {
+                                position: 'bottom'
+                              }
+                            }
+                          }]
+                        },
+                      
+                      
+                      };
+                 
+                    this.setState({food:ph})
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            axios.get("http://localhost:5000/nonfood").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    non_food_ss.push(ob.ss);
+                    non_food_nm.push(ob.store_r);
+                    var ph = {
+          
+                        series: non_food_ss,
+                        options: {
+                          chart: {
+                            width: 380,
+                            type: 'pie',
+                          },
+                          title: {
+                            text: 'NON-FOOD v/s REGION',
+                            align: 'left'
+                          },
+                          labels: non_food_nm,
+                          responsive: [{
+                            breakpoint: 480,
+                            options: {
+                              chart: {
+                                width: 200
+                              },
+                              legend: {
+                                position: 'bottom'
+                              }
+                            }
+                          }]
+                        },
+                      
+                      
+                      };
+                 
+                    this.setState({non_food:ph})
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            axios.get("http://localhost:5000/line").then(result=>{
+                console.log(result);
+                var ref = 0;
+                result.data.map(ob =>{
+                    if(ob.store_r == 'WEST')
+                    {
+                        west.push(ob.ss);
+                    }
+                    if(ob.store_r == 'EAST')
+                    {
+                        east.push(ob.ss);
+                    }
+                    if(ob.store_r == 'CENTRAL')
+                    {
+                        central.push(ob.ss);
+                    }
+                    if(ob.store_r == 'SOUTH')
+                    {
+                        south.push(ob.ss)
+                    }
+                    raj.push(ob.ss);
+                })
+                var p = {
+          
+                    series: [
+                      {
+                        name: "EAST",
+                        data: east
+                      },
+                      {
+                        name: "WEST",
+                        data: west
+                      },
+                      {
+                        name: "CENTRAL",
+                        data: central
+                      },
+                      {
+                        name: "SOUTH",
+                        data: south
+                      }
+                    ],
+                    options: {
+                      chart: {
+                        height: 350,
+                        type: 'line',
+                        dropShadow: {
+                          enabled: true,
+                          color: '#000',
+                          top: 18,
+                          left: 7,
+                          blur: 10,
+                          opacity: 0.2
+                        },
+                        toolbar: {
+                          show: false
+                        }
+                      },
+                      colors: ['#9c0f08', '#91db1a','#faa200', '#f714ba'],
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      stroke: {
+                        curve: 'smooth',
+                        width:2
+                      },
+                      title: {
+                        text: 'Sales v/s Month',
+                        align: 'left'
+                      },
+                      grid: {
+                        borderColor: '#e7e7e7',
+                        row: {
+                          colors: ['#FFFFFF', '#FFFFFF','#FFFFFF', '#FFFFFF'], // takes an array which will be repeated on columns
+                          opacity: 0.5
+                        },
+                      },
+                      markers: {
+                        size: 1,
+                        strokeColors: ['#9c0f08', '#91db1a','#faa200', '#f714ba'],
+                        strokeWidth: 6
+                      },
+                      xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug','Sep','Oct','Nov','Dec'],
+                        title: {
+                          text: 'Month'
+                        }
+                      },
+                      yaxis: {
+                        title: {
+                          text: 'Total Sales'
+                        },
+                        min: Math.min(...raj)-10,
+                        max: Math.max(...raj)+10
+                      },
+                      legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        floating: true,
+                        offsetY: -25,
+                        offsetX: -5
+                      }
+                    },
+                  
+                  
+                  };
+                  this.setState({line:p})
+            })
+            axios.get("http://localhost:5000/bar").then(result=>{
+                console.log(result);
+                var ref = [];
+                result.data.map(ob => {
+                    if(ob.department == "FOOD")
+                    {
+                        bfood.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    if(ob.department == "NON-FOOD")
+                    {
+                        bnonfood.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    if(ob.department == "PHARMA")
+                    {
+                        bpharma.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    
+                })
+                var p = {
+          
+                    series: [{
+                      name: 'FOOD',
+                      data:  bfood
+                    }, {
+                      name: 'NON-FOOD',
+                      data: bnonfood
+                    }, {
+                      name: 'PHARMA',
+                      data: bpharma
+                    }],
+                    options: {
+                      chart: {
+                        type: 'bar',
+                        height: 350,
+                        stacked: true,
+                        toolbar: {
+                          show: true
+                        },
+                        zoom: {
+                          enabled: true
+                        }
+                      },
+                      responsive: [{
+                        breakpoint: 480,
+                        options: {
+                          legend: {
+                            position: 'bottom',
+                            offsetX: -10,
+                            offsetY: 0
+                          }
+                        }
+                      }],
+                      plotOptions: {
+                        bar: {
+                          borderRadius: 8,
+                          horizontal: false,
+                        },
+                      },
+                      xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug','Sep','Oct','Nov','Dec'],
+                      },
+                      legend: {
+                        position: 'right',
+                        offsetY: 40
+                      },
+                      fill: {
+                        opacity: 1
+                      }
+                    },
+                  
+                  
+                  };
+                  
+                  this.setState({bar:p});
+            })
+            axios.get("http://localhost:5000/don").then(result=>
+            {
+                result.data.map(ob=>{
+                    don_nm.push(ob.INCOME_RANGE);
+                    don_ss.push(ob.ss);
+                })
+                var p = {
+                    series: don_ss,
+                    options: {
+                      chart: {
+                        type: 'donut',
+                        width: 380
+                      },
+                      title: {
+                        text: 'SPEND v/s INCOME RANGE',
+                        align: 'left'
+                      },
+                      labels:don_nm,
+                      responsive: [{
+                        breakpoint: 480,
+                        options: {
+                          chart: {
+                            width: 200
+                          },
+                          legend: {
+                            position: 'bottom'
+                          }
+                        }
+                      }]
+                    },
+                  
+                  
+                  };
+                this.setState({don:p})
+            
+            })
           }
           handleOpenDialog1 = (e) => {
             if (buttonRef1.current) {
@@ -466,7 +827,7 @@ class UserLogin extends React.Component
                                         marginBottom: 5,
                                         paddingLeft: 13,
                                         paddingTop: 3,
-                                        width: '60%'
+                                        width: '60%',
                                     }}
                                     >
                                     {file && file.name}
@@ -489,15 +850,29 @@ class UserLogin extends React.Component
                             </div>
                             </div>
                             <div class="row">
-                                    <div>
-                                    <Chart
-                                        options={this.state.lineGraph.options}
-                                        series={this.state.lineGraph.series}
-                                        type="bar"
-                                        width="500"
-                                        />
+                                <div class="col-md-6 border">
+                                <ReactApexChart options={this.state.line.options} series={this.state.line.series} type="line" style={{width:"100%"}} height={400} />
+                                    </div>
+                                    <div class="col-md-6 border">
+                                    <ReactApexChart options={this.state.bar.options} series={this.state.bar.series} type="bar" height={350} />
+    
+                                        </div>
+                            </div>
+                            <div class="row border">
+                                    <div style={{width:'24%'}}>
+                                    <ReactApexChart options={this.state.pharma.options} series={this.state.pharma.series} type="pie" width={380} />
+                                    </div>
+                                    <div style={{width:'24%'}}>
+                                    <ReactApexChart options={this.state.food.options} series={this.state.food.series} type="pie" width={380} />
+                                    </div>
+                                    <div style={{width:'24%'}}>
+                                    <ReactApexChart options={this.state.non_food.options} series={this.state.non_food.series} type="pie" width={380} />
+                                    </div>
+                                    <div style={{width:'28%'}}>
+                                    <ReactApexChart options={this.state.don.options} series={this.state.don.series} type="donut" />
                                     </div>
                             </div>
+                            
              </div> : <div></div> }
         { this.state.login ?
             <div id="login">

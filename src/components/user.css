@@ -39,3 +39,8 @@ div{
   #register .container #login-row #login-column #login-box #login-form #register-link {
     margin-top: -85px;
   }
+
+  #nebula_div_btn
+  {
+    padding: 0px; bottom: 0px; right: 0px; border: none; z-index: 99999990 !important; position: fixed !important; cursor: pointer !important; line-height: 1px !important; margin-bottom: 90px;
+  }

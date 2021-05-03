@@ -1,17 +1,38 @@
 import React from 'react'
 import fire from './fire';
 import './user.css';
+import team from '../teamchat.JPG'
+import ReactDOM from 'react-dom'
+import {Doughnut} from 'react-chartjs-2'
+import { JsonToTable } from "react-json-to-table";
+import ClipLoader from "react-spinners/ClipLoader";
 import ReactApexChart from "react-apexcharts";
-import { CSVReader } from 'react-papaparse'
+import ApexCharts from 'react-apexcharts'
+import { createBrowserHistory } from "history";
+import { CSVReader } from 'react-papaparse';
 import axios from 'axios';
+import reactDom from 'react-dom';
 const buttonRef1 = React.createRef()
 const buttonRef2 = React.createRef()
 const buttonRef3 = React.createRef()
 class UserLogin extends React.Component
 {
     
-        
-        state = {
+        constructor(props)
+        {
+          super(props);
+          this.state = {
+            varma : true,
+            tabledata:[],
+            hnum : 10,
+            width:'100%',
+            scrolldonut:'',
+            move:24,
+            loading:false,
+            raja:'',
+            scrollpharma : '',
+            scrollfood:'',
+            scrollnonfood:'',
             don:[],
             bar:[],
             line:[],
@@ -22,6 +43,7 @@ class UserLogin extends React.Component
             success:false,
             login : true,
             register:false,
+            displayregion : '',
             username:'',
             un:'',
             pwd:'',
@@ -34,203 +56,172 @@ class UserLogin extends React.Component
             arr:[],
             initial : [],
             final_data : [],
-            lineGraph:{
-                series: [{
-                    name: "Desktops",
-                    data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
-                }],
-                options: {
-                  chart: {
-                    height: 350,
-                    type: 'line',
-                    zoom: {
-                      enabled: false
-                    }
-                  },
-                  dataLabels: {
-                    enabled: false
-                  },
-                  stroke: {
-                    curve: 'straight'
-                  },
-                  title: {
-                    text: 'Product Trends by Month',
-                    align: 'left'
-                  },
-                  grid: {
-                    row: {
-                      colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-                      opacity: 0.5
-                    },
-                  },
-                  xaxis: {
-                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-                  }
-                }
-            }
+            
         }
-
-        componentDidMount = ()=>{
-            var raj = [];
-            var phar_ss = [];
-            var phar_nm = [];
-            var food_ss = [];
-            var food_nm = [];
-            var non_food_ss =[];
-            var non_food_nm = [];
-            var west =[];
-            var central = [];
-            var east = [];
-            var south = [];
-            var bfood = [];
-            var bnonfood = [];
-            var bpharma = [];
-            var don_ss =[];
+        this.getFoodPie = this.getFoodPie.bind(this);
+        this.getNonfoodPie = this.getNonfoodPie.bind(this);
+        this.getPharma = this.getPharma.bind(this);
+        }
+       
+        getDonut = ()=>{
+            var don_ss = [];
             var don_nm = [];
-            axios.get("http://localhost:5000/")
-            .then(result=>{
-                console.log(result.data);
-                result.data.map(ob => {
-                    phar_ss.push(ob.ss);
-                    phar_nm.push(ob.store_r);
-                    var ph = {
-          
-                        series: phar_ss,
+            axios.get("http://localhost:5000/don").then(result=>
+            {
+                result.data.map(ob=>{
+                    don_nm.push(ob.INCOME_RANGE);
+                    don_ss.push(ob.ss);
+                })
+                var pe = {
+                    series: don_ss,
+                    options: {
+                      chart: {
+                        type: 'donut',
+                        width: 380
+                      },
+                      title: {
+                        text: 'SPEND v/s INCOME RANGE',
+                        align: 'left'
+                      },
+                      labels:don_nm,
+                      responsive: [{
+                        breakpoint: 480,
                         options: {
                           chart: {
-                            width: 380,
-                            type: 'pie',
+                            width: 200
                           },
-                          title: {
-                            text: 'PHARMA v/s REGION',
-                            align: 'left'
-                          },
-                          labels: phar_nm,
-                          responsive: [{
-                            breakpoint: 480,
-                            options: {
-                              chart: {
-                                width: 200
-                              },
-                              legend: {
-                                position: 'bottom'
-                              }
-                            }
-                          }]
-                        },
-                      
-                      
-                      };
-                 
-                    this.setState({pharma:ph})
-                })
+                          legend: {
+                            position: 'bottom'
+                          }
+                        }
+                      }]
+                    },
+                  
+                  
+                  };
+                  var maxpe = don_nm[don_ss.indexOf(Math.max(...don_ss))]
+                  this.setState({scrolldonut:maxpe})
+                this.setState({don:pe})
+            
             })
-            .catch(err => {
-                console.log(err);
-            })
-            axios.get("http://localhost:5000/food").then(result=>{
-                console.log(result.data);
+        }
+        getBar = ()=>{
+            var bfood =[]
+            var bnonfood = []
+            var bpharma =  []
+            axios.get("http://localhost:5000/bar").then(result=>{
+                console.log(result);
+                var ref = [];
                 result.data.map(ob => {
-                    food_ss.push(ob.ss);
-                    food_nm.push(ob.store_r);
-                    var ph = {
-          
-                        series: food_ss,
-                        options: {
-                          chart: {
-                            width: 380,
-                            type: 'pie',
-                          },
-                          title: {
-                            text: 'FOOD v/s REGION',
-                            align: 'left'
-                          },
-                          labels: food_nm,
-                          responsive: [{
-                            breakpoint: 480,
-                            options: {
-                              chart: {
-                                width: 200
-                              },
-                              legend: {
-                                position: 'bottom'
-                              }
-                            }
-                          }]
-                        },
-                      
-                      
-                      };
-                 
-                    this.setState({food:ph})
+                    if(ob.department == "FOOD")
+                    {
+                        bfood.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    if(ob.department == "NON-FOOD")
+                    {
+                        bnonfood.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    if(ob.department == "PHARMA")
+                    {
+                        bpharma.push(ob.ss);
+                        ref.push(ob.ss);
+                    }
+                    
                 })
-            })
-            .catch(err => {
-                console.log(err);
-            })
-            axios.get("http://localhost:5000/nonfood").then(result=>{
-                console.log(result.data);
-                result.data.map(ob => {
-                    non_food_ss.push(ob.ss);
-                    non_food_nm.push(ob.store_r);
-                    var ph = {
+                var pd = {
           
-                        series: non_food_ss,
-                        options: {
-                          chart: {
-                            width: 380,
-                            type: 'pie',
-                          },
-                          title: {
-                            text: 'NON-FOOD v/s REGION',
-                            align: 'left'
-                          },
-                          labels: non_food_nm,
-                          responsive: [{
-                            breakpoint: 480,
-                            options: {
-                              chart: {
-                                width: 200
-                              },
-                              legend: {
-                                position: 'bottom'
-                              }
-                            }
-                          }]
+                    series: [{
+                      name: 'FOOD',
+                      data:  bfood
+                    }, {
+                      name: 'NON-FOOD',
+                      data: bnonfood
+                    }, {
+                      name: 'PHARMA',
+                      data: bpharma
+                    }],
+                    options: {
+                      chart: {
+                        type: 'bar',
+                        height: 350,
+                        stacked: true,
+                        toolbar: {
+                          show: true
                         },
-                      
-                      
-                      };
-                 
-                    this.setState({non_food:ph})
-                })
+                        zoom: {
+                          enabled: true
+                        }
+                      },
+                      responsive: [{
+                        breakpoint: 480,
+                        options: {
+                          legend: {
+                            position: 'bottom',
+                            offsetX: -10,
+                            offsetY: 0
+                          }
+                        }
+                      }],
+                      plotOptions: {
+                        bar: {
+                          borderRadius: 8,
+                          horizontal: false,
+                        },
+                      },
+                      xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug','Sep','Oct','Nov','Dec'],
+                      },
+                      legend: {
+                        position: 'right',
+                        offsetY: 40
+                      },
+                      fill: {
+                        opacity: 1
+                      }
+                    },
+                  
+                  
+                  };
+                  
+                  this.setState({bar:pd});
             })
-            .catch(err => {
-                console.log(err);
-            })
+        }
+        getLine = ()=>{
+            var west = [];
+            var east = [];
+            var central = [];
+            var south = [];
+            var raj = [];
             axios.get("http://localhost:5000/line").then(result=>{
                 console.log(result);
                 var ref = 0;
+                var reg = []
                 result.data.map(ob =>{
                     if(ob.store_r == 'WEST')
                     {
                         west.push(ob.ss);
+                        reg.push('WEST');
                     }
                     if(ob.store_r == 'EAST')
                     {
                         east.push(ob.ss);
+                        reg.push('EAST');
                     }
                     if(ob.store_r == 'CENTRAL')
                     {
                         central.push(ob.ss);
+                        reg.push('CENTRAL');
                     }
                     if(ob.store_r == 'SOUTH')
                     {
                         south.push(ob.ss)
+                        reg.push('SOUTH');
                     }
                     raj.push(ob.ss);
                 })
-                var p = {
+                var pc = {
           
                     series: [
                       {
@@ -314,7 +305,430 @@ class UserLogin extends React.Component
                   
                   
                   };
-                  this.setState({line:p})
+                  this.setState({line:pc})
+                  var index = reg[raj.indexOf(Math.max(...raj))]
+                  this.setState({displayregion : index})
+            })
+        }
+        getFoodPie = async()=>{
+            console.log("food pie lo vunnam");
+            var food_nm = [];
+            var food_ss = [];
+            axios.get("http://localhost:5000/food").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    food_ss.push(ob.ss);
+                    food_nm.push(ob.store_r);
+                })
+                var pa = {
+          
+                  series: food_ss,
+                  options: {
+                    chart: {
+                      width: 380,
+                      type: 'pie',
+                    },
+                    title: {
+                      text: 'FOOD v/s REGION',
+                      align: 'left'
+                    },
+                    labels: food_nm,
+                    responsive: [{
+                      breakpoint: 480,
+                      options: {
+                        chart: {
+                          width: 200
+                        },
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }]
+                  },
+                
+                
+                };
+               this.setState({food:{}},()=>{
+                this.setState({food:pa})
+                var maxf = food_nm[food_ss.indexOf(Math.max(...food_ss))]
+                this.setState({scrollfood:maxf})
+               })
+               
+            })
+            .catch(err => {
+                console.log(err);
+            })
+           
+        }
+        getNonfoodPie = async()=>{
+            var non_food_nm = [];
+            var non_food_ss = [];
+            axios.get("http://localhost:5000/nonfood").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    non_food_ss.push(ob.ss);
+                    non_food_nm.push(ob.store_r);
+                   
+                })
+                var pb = {
+          
+                  series: non_food_ss,
+                  options: {
+                    chart: {
+                      width: 380,
+                      type: 'pie',
+                    },
+                    title: {
+                      text: 'NON-FOOD v/s REGION',
+                      align: 'left'
+                    },
+                    labels: non_food_nm,
+                    responsive: [{
+                      breakpoint: 480,
+                      options: {
+                        chart: {
+                          width: 200
+                        },
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }]
+                  },
+                
+                
+                };
+              this.setState({non_food:{}})
+              this.setState({non_food:pb},()=>{
+                var elem = document.getElementById('cincy');
+                elem.style.width = "99.9%"
+              })
+              var maxn = non_food_nm[non_food_ss.indexOf(Math.max(...non_food_ss))]
+                this.setState({scrollnonfood:maxn})
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        }
+        getPharma = async()=>{
+            var phar_ss = [];
+            var phar_nm = [];
+            axios.get("http://localhost:5000/")
+            .then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    phar_ss.push(ob.ss);
+                    phar_nm.push(ob.store_r);
+                   
+                })
+                var ph = {
+          
+                  series: phar_ss,
+                  options: {
+                    chart: {
+                      width: 380,
+                      type: 'pie',
+                    },
+                    title: {
+                      text: 'PHARMA v/s REGION',
+                      align: 'left'
+                    },
+                    labels: phar_nm,
+                    responsive: [{
+                      breakpoint: 480,
+                      options: {
+                        chart: {
+                          width: 200
+                        },
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }]
+                  },
+                
+                
+                };
+                this.setState({pharma:{}})
+                this.setState({pharma:ph},()=>{
+                  var elem = document.getElementById('cincy');
+                  elem.style.width = "99%"
+                })
+                var max = phar_nm[phar_ss.indexOf(Math.max(...phar_ss))]
+                this.setState({scrollpharma:max})
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        }
+        getPie = ()=>{
+           
+        }
+        componentDidMount = async()=>{
+          
+            var raj = [];
+            var phar_ss = [];
+            var phar_nm = [];
+            var food_ss = [];
+            var food_nm = [];
+            var non_food_ss =[];
+            var non_food_nm = [];
+            var west =[];
+            var central = [];
+            var east = [];
+            var south = [];
+            var bfood = [];
+            var bnonfood = [];
+            var bpharma = [];
+            var don_ss =[];
+            var don_nm = [];
+            axios.post("http://localhost:5000/hhnum",{hn:this.state.hnum})
+            .then(result=>{
+                this.setState({tabledata:[]});
+                this.setState({tabledata:result.data})
+                console.log(this.state.tabledata)
+            })
+            console.log(this.state.tabledata)
+            axios.get("http://localhost:5000/")
+            .then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    phar_ss.push(ob.ss);
+                    phar_nm.push(ob.store_r);
+                    var ph = {
+          
+                        series: phar_ss,
+                        options: {
+                          chart: {
+                            width: 380,
+                            type: 'pie',
+                          },
+                          title: {
+                            text: 'PHARMA v/s REGION',
+                            align: 'left'
+                          },
+                          labels: phar_nm,
+                          responsive: [{
+                            breakpoint: 480,
+                            options: {
+                              chart: {
+                                width: 200
+                              },
+                              legend: {
+                                position: 'bottom'
+                              }
+                            }
+                          }]
+                        },
+                      
+                      
+                      };
+                      var max = phar_nm[phar_ss.indexOf(Math.max(...phar_ss))]
+                      this.setState({scrollpharma:max})
+                    this.setState({pharma:ph})
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            axios.get("http://localhost:5000/food").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    food_ss.push(ob.ss);
+                    food_nm.push(ob.store_r);
+                   
+                })
+                var pa = {
+          
+                  series: food_ss,
+                  options: {
+                    chart: {
+                      width: 380,
+                      type: 'pie',
+                    },
+                    title: {
+                      text: 'FOOD v/s REGION',
+                      align: 'left'
+                    },
+                    labels: food_nm,
+                    responsive: [{
+                      breakpoint: 480,
+                      options: {
+                        chart: {
+                          width: 200
+                        },
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }]
+                  },
+                
+                
+                };
+                var maxf = food_nm[food_ss.indexOf(Math.max(...food_ss))]
+                this.setState({scrollfood:maxf})
+              this.setState({food:pa})
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            axios.get("http://localhost:5000/nonfood").then(result=>{
+                console.log(result.data);
+                result.data.map(ob => {
+                    non_food_ss.push(ob.ss);
+                    non_food_nm.push(ob.store_r);
+                   
+                })
+                var pb = {
+          
+                  series: non_food_ss,
+                  options: {
+                    chart: {
+                      width: 380,
+                      type: 'pie',
+                    },
+                    title: {
+                      text: 'NON-FOOD v/s REGION',
+                      align: 'left'
+                    },
+                    labels: non_food_nm,
+                    responsive: [{
+                      breakpoint: 480,
+                      options: {
+                        chart: {
+                          width: 200
+                        },
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }]
+                  },
+                
+                
+                };
+                var maxn = non_food_nm[non_food_ss.indexOf(Math.max(...non_food_ss))]
+                this.setState({scrollnonfood:maxn})
+              this.setState({non_food:pb})
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            var reg = []
+            axios.get("http://localhost:5000/line").then(result=>{
+                console.log(result);
+                var ref = 0;
+                result.data.map(ob =>{
+                    if(ob.store_r == 'WEST')
+                    {
+                        west.push(ob.ss);
+                        reg.push('WEST')
+                    }
+                    if(ob.store_r == 'EAST')
+                    {
+                        east.push(ob.ss);
+                        reg.push('EAST')
+                    }
+                    if(ob.store_r == 'CENTRAL')
+                    {
+                        central.push(ob.ss);
+                        reg.push('CENTRAL')
+                    }
+                    if(ob.store_r == 'SOUTH')
+                    {
+                        south.push(ob.ss)
+                        reg.push('SOUTH')
+                    }
+                    raj.push(ob.ss);
+                })
+                var pc = {
+          
+                    series: [
+                      {
+                        name: "EAST",
+                        data: east
+                      },
+                      {
+                        name: "WEST",
+                        data: west
+                      },
+                      {
+                        name: "CENTRAL",
+                        data: central
+                      },
+                      {
+                        name: "SOUTH",
+                        data: south
+                      }
+                    ],
+                    options: {
+                      chart: {
+                        height: 350,
+                        type: 'line',
+                        dropShadow: {
+                          enabled: true,
+                          color: '#000',
+                          top: 18,
+                          left: 7,
+                          blur: 10,
+                          opacity: 0.2
+                        },
+                        toolbar: {
+                          show: false
+                        }
+                      },
+                      colors: ['#9c0f08', '#91db1a','#faa200', '#f714ba'],
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      stroke: {
+                        curve: 'smooth',
+                        width:2
+                      },
+                      title: {
+                        text: 'Sales(By Region) v/s Month',
+                        align: 'left'
+                      },
+                      grid: {
+                        borderColor: '#e7e7e7',
+                        row: {
+                          colors: ['#FFFFFF', '#FFFFFF','#FFFFFF', '#FFFFFF'], // takes an array which will be repeated on columns
+                          opacity: 0.5
+                        },
+                      },
+                      markers: {
+                        size: 1,
+                        strokeColors: ['#9c0f08', '#91db1a','#faa200', '#f714ba'],
+                        strokeWidth: 6
+                      },
+                      xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug','Sep','Oct','Nov','Dec'],
+                        title: {
+                          text: 'Month'
+                        }
+                      },
+                      yaxis: {
+                        title: {
+                          text: 'Total Sales'
+                        },
+                        min: Math.min(...raj)-10,
+                        max: Math.max(...raj)+10
+                      },
+                      legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        floating: true,
+                        offsetY: -25,
+                        offsetX: -5
+                      }
+                    },
+                  
+                  
+                  };
+                  this.setState({line:pc})
+                  var index = reg[raj.indexOf(Math.max(...raj))]
+                  this.setState({displayregion : index})
             })
             axios.get("http://localhost:5000/bar").then(result=>{
                 console.log(result);
@@ -337,7 +751,7 @@ class UserLogin extends React.Component
                     }
                     
                 })
-                var p = {
+                var pd = {
           
                     series: [{
                       name: 'FOOD',
@@ -361,6 +775,10 @@ class UserLogin extends React.Component
                           enabled: true
                         }
                       },
+                      title: {
+                        text: 'Sales(By Department) v/s Month',
+                        align: 'left'
+                      },
                       responsive: [{
                         breakpoint: 480,
                         options: {
@@ -378,7 +796,15 @@ class UserLogin extends React.Component
                         },
                       },
                       xaxis: {
+                        title: {
+                          text: 'Month'
+                        },
                         categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug','Sep','Oct','Nov','Dec'],
+                      },
+                      yaxis:{
+                        title: {
+                          text: 'Total Sales'
+                        }
                       },
                       legend: {
                         position: 'right',
@@ -392,7 +818,7 @@ class UserLogin extends React.Component
                   
                   };
                   
-                  this.setState({bar:p});
+                  this.setState({bar:pd});
             })
             axios.get("http://localhost:5000/don").then(result=>
             {
@@ -400,7 +826,7 @@ class UserLogin extends React.Component
                     don_nm.push(ob.INCOME_RANGE);
                     don_ss.push(ob.ss);
                 })
-                var p = {
+                var pe = {
                     series: don_ss,
                     options: {
                       chart: {
@@ -427,7 +853,9 @@ class UserLogin extends React.Component
                   
                   
                   };
-                this.setState({don:p})
+                  var maxpe = don_nm[don_ss.indexOf(Math.max(...don_ss))]
+                  this.setState({scrolldonut:maxpe})
+                this.setState({don:pe})
             
             })
           }
@@ -437,7 +865,7 @@ class UserLogin extends React.Component
             }
           }
         
-          handleOnFileLoad1 = (data) => {
+          handleOnFileLoad1 = async(data) => {
             console.log('---------------------------')
             console.log(data)
             var raja = []
@@ -462,11 +890,18 @@ class UserLogin extends React.Component
                 raja.push(x);
             }   
             console.log(raja);
-            axios.post('http://localhost:5000/data/hh',{data:raja})
-            .then(res => {
+            await axios.post('http://localhost:5000/data/hh',{data:raja})
+            .then( res => {
                 console.log("sent data to node js");
+                
             })
             console.log('---------------------------')
+            this.setState({loading:true});
+            setTimeout(() => {
+                    this.getDonut()
+                    this.setState({loading:false})
+              }, 3000);
+            
           }
         
           handleOnError1 = (err, file, inputElem, reason) => {
@@ -522,6 +957,11 @@ class UserLogin extends React.Component
                 console.log("sent data to node js");
             })
             console.log('---------------------------')
+            this.setState({loading:true});
+            setTimeout(() => {
+                    this.getPie()
+                    this.setState({loading:false})
+              }, 5000);
           }
         
           handleOnError2 = (err, file, inputElem, reason) => {
@@ -547,7 +987,7 @@ class UserLogin extends React.Component
             }
           }
         
-          handleOnFileLoad3 = (data) => {
+          handleOnFileLoad3 = async(data) => {
             console.log('---------------------------')
             console.log(data)
             var raja = []
@@ -575,14 +1015,57 @@ class UserLogin extends React.Component
             axios.post('http://localhost:5000/data/tr',{data:raja})
             .then(res => {
                 console.log("sent data to node js");
+                        this.setState({varma:false})
             })
             console.log('---------------------------')
+            this.setState({loading:true});
+            setTimeout(async() => {
+                    this.getLine();
+                    this.getBar();
+                    this.getDonut();
+                        this.getFoodPie();
+                        this.getPharma();
+                        this.getNonfoodPie();
+                        this.setState({varma:false})
+                        //window.dispatchEvent(new Event('resize'));
+                        // var height = window.screen.height;
+                        // var width = window.screen.width;
+                        // console.log(height);
+                        // console.log(width);
+                        // window.resizeTo(width-100,height-100)
+                        
+              }, 3000);
+              // setTimeout(() => {
+              //   var chart = new ApexCharts(document.querySelector("#pie1"), this.state.pharma);
+              //   chart.render();
+              //   var chart1 = new ApexCharts(document.querySelector("#pie2"), this.state.food);
+              //   chart.render();
+              //   var chart2 = new ApexCharts(document.querySelector("#pie3"), this.state.non_food);
+              //   chart.render();
+              //   chart1.render();
+              //   chart2.render();
+              //   // let chartInstance = ApexCharts.getChartByID("pie1");
+              //   // let pie2  = ApexCharts.getChartByID("pie2");
+              //   // if (chartInstance) chartInstance.windowResizeHandler();
+              //   // if (pie2) pie2.windowResizeHandler();
+              //   // let pie3  = ApexCharts.getChartByID("pie3");
+              //   // if (pie3) pie3.windowResizeHandler();
+              // },5000);
+              
           }
         
           handleOnError3 = (err, file, inputElem, reason) => {
             console.log(err)
           }
-        
+          handleHH = ()=>{
+            console.log("raja nithin varma");
+            axios.post("http://localhost:5000/hhnum",{hn:this.state.hnum})
+            .then(result=>{
+                this.setState({tabledata:[]})
+                this.setState({tabledata:result.data});
+                console.log(this.state.tabledata)
+            })
+          }
           handleOnRemoveFile3 = (data) => {
             console.log('---------------------------')
             console.log(data)
@@ -654,7 +1137,14 @@ class UserLogin extends React.Component
         <div>
          {this.state.success? <div style={{marginTop:'10px',marginLeft:'20px',marginRight:'20px'}}>
                                 <div style={{justifyContent:'space-between',display:'flex',fontSize:'19px',fontFamily:'cursive'}} >
-                                    <h1>Hi {this.state.username}🦁</h1>
+                                    <h1>Welcome {this.state.username}</h1>
+                                    <marquee style={{fontFamily:'Cursive'}} scrollamount="9" width="80%" direction="left" height="30px">
+                                      The highest sales in the country is observed to be in <b style={{color:'green'}}>{this.state.displayregion} </b>region. 
+                                        Pharma sales recorded its highest in <b style={{color:'green'}}>{this.state.scrollpharma}</b>  region.
+                                        Food sales recorded its highest in <b style={{color:'green'}}>{this.state.scrollfood}</b> region.
+                                        Non-Food sales recorded its highest in <b style={{color:'green'}}>{this.state.scrollnonfood} </b>region.
+                                        It is visualized that citizens with Income Range <b style={{color:'green'}}>{this.state.scrolldonut} </b> spend the most.
+                                    </marquee>
                                     <button onClick={()=>this.setState({login:true,success:false,register:false})}>Logout</button>
                                 </div>
                          <div class="row">
@@ -687,7 +1177,7 @@ class UserLogin extends React.Component
                                         paddingRight: 0
                                     }}
                                     >
-                                    Browse file
+                                    UPLOAD HOUSEHOLD
                                     </button>
                                     <div
                                     style={{
@@ -703,7 +1193,9 @@ class UserLogin extends React.Component
                                         width: '60%'
                                     }}
                                     >
-                                    {file && file.name}
+                                    {
+                                      file && file.name ? file && file.name : "HOUSEHOLD FILE HERE"
+                                    }
                                     </div>
                                     <button
                                     style={{
@@ -751,7 +1243,7 @@ class UserLogin extends React.Component
                                         paddingRight: 0
                                     }}
                                     >
-                                    Browse file
+                                    UPLOAD PRODUCTS
                                     </button>
                                     <div
                                     style={{
@@ -767,7 +1259,9 @@ class UserLogin extends React.Component
                                         width: '60%'
                                     }}
                                     >
-                                    {file && file.name}
+                                    {
+                                      file && file.name ? file && file.name : "PRODUCTS FILE HERE"
+                                    } 
                                     </div>
                                     <button
                                     style={{
@@ -814,7 +1308,7 @@ class UserLogin extends React.Component
                                         paddingRight: 0
                                     }}
                                     >
-                                    Browse file
+                                    UPLOAD TRANSACTIONS
                                     </button>
                                     <div
                                     style={{
@@ -830,7 +1324,9 @@ class UserLogin extends React.Component
                                         width: '60%',
                                     }}
                                     >
-                                    {file && file.name}
+                                    {
+                                      file && file.name ? file && file.name : "TRANSACTIONS FILE HERE"
+                                    }
                                     </div>
                                     <button
                                     style={{
@@ -849,6 +1345,7 @@ class UserLogin extends React.Component
                             </CSVReader>
                             </div>
                             </div>
+                            <div style={{backgroundColor:'grey',padding:'2px'}} id="nebula_div_btn" class="nebula_image_button  noOutline "  tabindex="0"><a href="https://teamchatfrontend.azurewebsites.net" target="_blank"><img style={{width:'40px'}} alt="Feedback" src={team}/></a></div>
                             <div class="row">
                                 <div class="col-md-6 border">
                                 <ReactApexChart options={this.state.line.options} series={this.state.line.series} type="line" style={{width:"100%"}} height={400} />
@@ -858,21 +1355,30 @@ class UserLogin extends React.Component
     
                                         </div>
                             </div>
-                            <div class="row border">
-                                    <div style={{width:'24%'}}>
-                                    <ReactApexChart options={this.state.pharma.options} series={this.state.pharma.series} type="pie" width={380} />
+                            
+                            <div id="cincy" class="row border w3-animate-opacity">
+                                    <div id="pie1" style={{width:`24%`}}>
+                                    <ReactApexChart id="pie1" options={this.state.pharma.options} series={this.state.pharma.series} type="pie" width={380} />
                                     </div>
-                                    <div style={{width:'24%'}}>
-                                    <ReactApexChart options={this.state.food.options} series={this.state.food.series} type="pie" width={380} />
+                                    <div id="pie2" style={{width:`24%`}}>
+                                    <ReactApexChart id="pie2" options={this.state.food.options} series={this.state.food.series} type="pie" width={380} />
                                     </div>
-                                    <div style={{width:'24%'}}>
-                                    <ReactApexChart options={this.state.non_food.options} series={this.state.non_food.series} type="pie" width={380} />
+                                    <div id="pie3" style={{width:`24%`}}>
+                                    <ReactApexChart id="pie3" options={this.state.non_food.options} series={this.state.non_food.series} type="pie" width={380} />
                                     </div>
-                                    <div style={{width:'28%'}}>
+                                    <div id="pie4" style={{width:`28%`}}>
                                     <ReactApexChart options={this.state.don.options} series={this.state.don.series} type="donut" />
                                     </div>
                             </div>
-                            
+                            <div class="row" style={{width:'100%'}}>
+                              <input style={{width:'20%'}} class="form-control" type="text" placeholder="Enter Household Number" name="hnum" onChange={(e)=>this.handleRead(e)}/>
+                              <button class="btn btn-primary" onClick={()=>this.handleHH()}>Pull HouseHold</button>
+                            </div>
+                            <div class="row" style={{width:'100%',fontSize:'40pt'}} >
+                              
+                                <JsonToTable  json={this.state.tabledata} />
+                              </div>
+                          
              </div> : <div></div> }
         { this.state.login ?
             <div id="login">
@@ -952,4 +1458,4 @@ class UserLogin extends React.Component
         )
     }
 }
-export default UserLogin;
+export default UserLogin
